@@ -163,7 +163,7 @@ def main(argv=None):
     for figure in figures:
         add_feature(figure, data.DISPUTED, color="red")
 
-    toggle = bokeh.models.CheckboxGroup(
+    toggle = bokeh.models.CheckboxButtonGroup(
             labels=["Coastlines"],
             active=[0],
             width=135)
@@ -213,13 +213,14 @@ def main(argv=None):
             """)
     slider.js_on_change("value", custom_js)
 
+
+    if args.file_type == "eida50":#Test defaults based on data type
+        default_palette="Colorblind"
+    else:
+        default_palette="Plasma"# This could also be where we bring in saved user settings
+    colors_controls = colors.Controls(color_mapper, default_palette, 256)
+
     mapper_limits = MapperLimits(image_sources, color_mapper)
-
-    default_palette="Plasma"#FCL: This could be changed based on data type or saved user settings
-    colors_controls = colors.Controls(color_mapper, default_palette, 256,
-                                      color_mapper.low, color_mapper.high)
-
-
 
     menu = []
     for k, _ in config.patterns:
@@ -306,9 +307,8 @@ def main(argv=None):
                 border_row,
                 bokeh.layouts.row(slider),
                 colors_controls.layout,
-                #mv high and low into colous_controls
-                #bokeh.layouts.row(mapper_limits.low_input),
-                #bokeh.layouts.row(mapper_limits.high_input),
+                bokeh.layouts.row(mapper_limits.low_input),
+                bokeh.layouts.row(mapper_limits.high_input),
                 bokeh.layouts.row(mapper_limits.checkbox),
                 ),
             title="Settings")
@@ -656,16 +656,16 @@ class MapperLimits(object):
         for source in self.sources:
             source.on_change("data", self.on_source_change)
         self.color_mapper = color_mapper
-        #self.low_input = bokeh.models.TextInput(title="Low:")
-        #self.low_input.on_change("value",
-        #        self.change(color_mapper, "low", float))
-        #self.color_mapper.on_change("low",
-        #        self.change(self.low_input, "value", str))
-        #self.high_input = bokeh.models.TextInput(title="High:")
-        #self.high_input.on_change("value",
-        #        self.change(color_mapper, "high", float))
-        #self.color_mapper.on_change("high",
-        #        self.change(self.high_input, "value", str))
+        self.low_input = bokeh.models.TextInput(title="Low:")
+        self.low_input.on_change("value",
+                self.change(color_mapper, "low", float))
+        self.color_mapper.on_change("low",
+                self.change(self.low_input, "value", str))
+        self.high_input = bokeh.models.TextInput(title="High:")
+        self.high_input.on_change("value",
+                self.change(color_mapper, "high", float))
+        self.color_mapper.on_change("high",
+                self.change(self.high_input, "value", str))
         self.checkbox = bokeh.models.CheckboxGroup(
                 labels=["Fixed"],
                 active=[])
